@@ -4,3 +4,9 @@ server:
 spring:
   application:
     name: LibraryEventProducer
+
+logging:
+  level:
+    com:
+      library_with_kafka:
+        event_producer: DEBUG
