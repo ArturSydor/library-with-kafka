@@ -1,47 +1,52 @@
 package com.library_with_kafka.event_producer.producer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.library_with_kafka.event_producer.domain.LibraryEvent;
-import com.library_with_kafka.event_producer.utilities.JsonUtilities;
-import com.library_with_kafka.event_producer.utilities.ProducerCallbackUtilities;
+import com.library_with_kafka.event_producer.domain.event.LibraryEvent;
+import com.library_with_kafka.event_producer.utilities.KafkaProducerUtilities;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.header.Header;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
+import org.springframework.util.concurrent.ListenableFuture;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 @Slf4j
 @Component
-public record LibraryEventProducer(
-        KafkaTemplate<Integer, String> kafkaTemplate,
-        ObjectMapper objectMapper) {
+@RequiredArgsConstructor
+public class LibraryEventProducer {
 
-    public void process(LibraryEvent libraryEvent, boolean isAsync) {
-        log.debug("Started processing book - {}", libraryEvent.getBook().name());
-        var futureResult = kafkaTemplate.send(getMessage(libraryEvent));
+    private final KafkaTemplate<Integer, String> kafkaTemplate;
 
-        if (isAsync) {
-            futureResult.addCallback(ProducerCallbackUtilities::handleSuccess,
-                    ex -> ProducerCallbackUtilities.handleFailure(ex, libraryEvent));
-        } else {
-            try {
-                ProducerCallbackUtilities.handleSuccess(futureResult.get());
-            } catch (Exception e) {
-                ProducerCallbackUtilities.handleFailure(e, libraryEvent);
-            }
-        }
+    private final ObjectMapper objectMapper;
 
-        log.debug("Finished processing book - {}", libraryEvent.getBook().name());
+    public void process(LibraryEvent libraryEvent) {
+        performSending(libraryEvent,
+                futureResult -> {
+                    try {
+                        KafkaProducerUtilities.handleSuccess(futureResult.get());
+                    } catch (Exception e) {
+                        KafkaProducerUtilities.handleFailure(e, libraryEvent);
+                    }
+                });
     }
 
-
-    private ProducerRecord<Integer, String> getMessage(LibraryEvent event) {
-        List<Header> headers = List.of(new RecordHeader("event-source", "qr-scanner".getBytes()));
-
-        return new ProducerRecord<>(event.getTopic(), null, event.getKey(),
-                JsonUtilities.getJsonString(objectMapper, event.getValue()), headers);
+    public ListenableFuture<SendResult<Integer, String>> processAsync(LibraryEvent libraryEvent) {
+        return performSending(libraryEvent,
+                futureResult -> futureResult.addCallback(KafkaProducerUtilities::handleSuccess,
+                ex -> KafkaProducerUtilities.handleFailure(ex, libraryEvent)));
     }
+
+    private ListenableFuture<SendResult<Integer, String>> performSending(LibraryEvent libraryEvent, Consumer<ListenableFuture<SendResult<Integer, String>>> resultProcessor) {
+        log.debug("Started processing book - {}", libraryEvent.value().getBook().name());
+        var futureResult = kafkaTemplate.send(KafkaProducerUtilities.createRecordWithIntKey(libraryEvent, objectMapper));
+
+        resultProcessor.accept(futureResult);
+
+        log.debug("Finished processing book - {}", libraryEvent.value().getBook().name());
+
+        return futureResult;
+    }
+
 }

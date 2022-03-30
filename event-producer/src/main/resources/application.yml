@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: LibraryEventProducer
+
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.IntegerSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
