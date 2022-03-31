@@ -2,6 +2,12 @@ spring:
   kafka:
     producer:
       bootstrap-servers: ${spring.embedded.kafka.brokers}
+      properties:
+        acks: 1
+        retries: 20
+        retry:
+          backoff:
+            ms: 500
     admin:
       properties:
         bootstrap.servers: ${spring.embedded.kafka.brokers}

@@ -19,10 +19,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 
-import static com.library_with_kafka.event_producer.data_factory.LibraryEventDataFactory.getDefaultCreatedLibraryEvent;
+import static com.library_with_kafka.event_producer.data_factory.LibraryEventDataFactory.getDefaultLibraryEventForUpdate;
+import static com.library_with_kafka.event_producer.data_factory.LibraryEventDataFactory.getDefaultNewLibraryEvent;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,7 +48,7 @@ class LibraryEventControllerTest {
         doNothing().when(libraryEventProducer).process(isA(LibraryEvent.class));
 
         mockMvc.perform(post("/v1/library/event")
-                .content(JsonUtilities.getJsonString(objectMapper, getDefaultCreatedLibraryEvent()))
+                .content(JsonUtilities.getJsonString(objectMapper, getDefaultNewLibraryEvent()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -65,6 +67,34 @@ class LibraryEventControllerTest {
 
         mockMvc.perform(post("/v1/library/event")
                         .content(JsonUtilities.getJsonString(objectMapper, libraryEvent))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(expectedErrorMessage));
+    }
+
+    @Test
+    @SneakyThrows
+    void updateLibraryEvent() {
+        doNothing().when(libraryEventProducer).process(isA(LibraryEvent.class));
+
+        mockMvc.perform(put("/v1/library/event")
+                        .content(JsonUtilities.getJsonString(objectMapper, getDefaultLibraryEventForUpdate()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+
+    @Test
+    @SneakyThrows
+    void updateLibraryEventKeyValidationFailed() {
+        var expectedErrorMessage = "LibraryEvent key is missing!";
+
+        doNothing().when(libraryEventProducer).process(isA(LibraryEvent.class));
+
+        mockMvc.perform(put("/v1/library/event")
+                        .content(JsonUtilities.getJsonString(objectMapper, getDefaultNewLibraryEvent()))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest())

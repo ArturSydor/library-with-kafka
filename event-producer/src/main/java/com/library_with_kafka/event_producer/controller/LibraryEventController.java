@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -22,6 +23,24 @@ public class LibraryEventController {
     public ResponseEntity<Void> save(@RequestBody @Valid LibraryEvent libraryEvent, @RequestParam(name = "async", defaultValue = "true") boolean async) {
         libraryEvent.value().setEventType(LibraryEventType.CREATE);
         log.debug("Received new event: {}", libraryEvent);
+
+        if (async) {
+            libraryEventProducer.process(libraryEvent);
+        } else {
+            libraryEventProducer.processAsync(libraryEvent);
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping
+    public ResponseEntity<?> update(@RequestBody @Valid LibraryEvent libraryEvent, @RequestParam(name = "async", defaultValue = "true") boolean async) {
+        if(Objects.isNull(libraryEvent.key())) {
+            return ResponseEntity.badRequest().body("LibraryEvent key is missing!");
+        }
+
+        libraryEvent.value().setEventType(LibraryEventType.UPDATE);
+        log.debug("Received event for update: {}", libraryEvent);
 
         if (async) {
             libraryEventProducer.process(libraryEvent);

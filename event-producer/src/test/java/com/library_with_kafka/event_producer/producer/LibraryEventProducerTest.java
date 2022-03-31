@@ -18,7 +18,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 
 import java.util.function.Consumer;
 
-import static com.library_with_kafka.event_producer.data_factory.LibraryEventDataFactory.getDefaultCreatedLibraryEvent;
+import static com.library_with_kafka.event_producer.data_factory.LibraryEventDataFactory.getDefaultNewLibraryEvent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.isA;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class LibraryEventProducerTest {
 
-    private static final LibraryEvent DEFAULT_EVENT = getDefaultCreatedLibraryEvent();
+    private static final LibraryEvent DEFAULT_EVENT = getDefaultNewLibraryEvent();
 
     private static final int DEFAULT_PARTITION = 1;
 
