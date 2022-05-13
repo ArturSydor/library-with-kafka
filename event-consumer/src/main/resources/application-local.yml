@@ -1,0 +1,14 @@
+server:
+  port: 8082
+
+spring:
+  kafka:
+    consumer:
+      bootstrap-servers:
+        - localhost:9092
+
+logging:
+  level:
+    com:
+      library_with_kafka:
+        event_consumer: DEBUG

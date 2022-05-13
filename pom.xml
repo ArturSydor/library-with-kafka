@@ -7,9 +7,10 @@
     <groupId>com.library-with-kafka</groupId>
     <artifactId>library-with-kafka-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <modules>
         <module>event-producer</module>
+        <module>event-consumer</module>
     </modules>
 
     <properties>

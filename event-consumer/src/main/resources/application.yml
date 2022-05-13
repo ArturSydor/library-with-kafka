@@ -1,0 +1,8 @@
+spring:
+  application: LibraryEventConsumer
+    name:
+  kafka:
+    consumer:
+      group-id: library-event-cinsumer-group
+      key-deserializer: org.apache.kafka.common.serialization.IntegerDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
