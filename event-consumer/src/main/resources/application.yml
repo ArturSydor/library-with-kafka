@@ -1,6 +1,6 @@
 spring:
-  application: LibraryEventConsumer
-    name:
+  application:
+    name: LibraryEventConsumer
   kafka:
     consumer:
       group-id: library-event-cinsumer-group
