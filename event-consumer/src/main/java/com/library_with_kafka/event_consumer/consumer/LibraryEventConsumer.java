@@ -1,5 +1,6 @@
 package com.library_with_kafka.event_consumer.consumer;
 
+import com.library_with_kafka.event_consumer.constant.KafkaTopic;
 import com.library_with_kafka.event_consumer.service.LibraryEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,7 @@ public class LibraryEventConsumer {
 
     private final LibraryEventService service;
 
-    @KafkaListener(topics = {"library-events"}, concurrency = "3")
+    @KafkaListener(topics = {KafkaTopic.LIBRARY_EVENTS}, concurrency = "3", groupId = "library-events-listener")
     public void onMessage(ConsumerRecord<Integer, String> consumerRecord) {
         log.info("Consumer record: {}", consumerRecord);
         service.processKafkaRecord(consumerRecord);

@@ -14,3 +14,7 @@ logging:
     com:
       library_with_kafka:
         event_producer: DEBUG
+
+retryListener:
+  library:
+    active: true
